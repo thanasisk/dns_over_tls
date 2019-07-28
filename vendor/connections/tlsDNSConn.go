@@ -1,6 +1,8 @@
 package tlsDNSConn
 
 import "crypto/tls"
+import "log"
+import "net"
 
 type OutgoingConnection struct {
 	Connection *tls.Conn
@@ -8,17 +10,28 @@ type OutgoingConnection struct {
 }
 
 func NewConnection(endpoint string) (*OutgoingConnection, error) {
-	c, err := tls.Dial("tcp4", endpoint, nil)
+	// rewrite using tls.Client
+	tcpAddr, err := net.ResolveTCPAddr("tcp", endpoint)
 	if err != nil {
+		log.Println("Unable to resolve endpoint: " + endpoint)
 		return nil, err
 	}
+
+	tcpConn, err := net.DialTCP("tcp4", nil, tcpAddr)
+	if err != nil {
+		log.Println("Unable to dial TCP " + endpoint)
+		return nil, err
+	}
+	//func (c *TCPConn) SetKeepAlive(keepalive bool) error
+	err = tcpConn.SetKeepAlive(true)
+	if err != nil {
+		log.Println("Unable to set KeepAlive on TCP transport")
+		return nil, err
+	}
+	c := tls.Client(tcpConn, &tls.Config{InsecureSkipVerify: true})
 	p := &OutgoingConnection{Connection: c}
 	return p, nil
 }
-
-//func (conn *OutgoingConnection) New(c *tls.Conn) *OutgoingConnection {
-//	p := &OutgoingConnection
-//}
 
 func (conn *OutgoingConnection) Close() {
 	conn.Connection.Close()
