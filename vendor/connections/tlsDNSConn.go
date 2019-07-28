@@ -7,23 +7,18 @@ type OutgoingConnection struct {
 	Verbosity  bool
 }
 
-func (conn *OutgoingConnection) SetConnection(Connection *tls.Conn) {
-	conn.Connection = Connection
-}
-
 func NewConnection(endpoint string) (*OutgoingConnection, error) {
 	c, err := tls.Dial("tcp4", endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
-	var p *OutgoingConnection
-	p.SetConnection(c)
+	p := &OutgoingConnection{Connection: c}
 	return p, nil
 }
 
-func (conn *OutgoingConnection) New() *OutgoingConnection {
-	return conn
-}
+//func (conn *OutgoingConnection) New(c *tls.Conn) *OutgoingConnection {
+//	p := &OutgoingConnection
+//}
 
 func (conn *OutgoingConnection) Close() {
 	conn.Connection.Close()
