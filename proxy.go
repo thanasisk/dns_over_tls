@@ -3,6 +3,11 @@ package main
 import "os"
 import "log"
 import "net"
+import "syscall"
+import "runtime"
+import "runtime/debug"
+import "os/signal"
+import "encoding/json"
 import "github.com/jessevdk/go-flags"
 
 func init() {
@@ -36,12 +41,10 @@ func main() {
 		log.Fatal(err)
 	}
 	defer l.Close()
-	// time to setup our TCP TLS connection
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGUSR1)
+	go dumpInfo(c)
 	dnsEndpoint := opts.Dns + ":" + opts.Sport
-	//oconn, err := tlsDNSConn.NewConnection(dnsEndpoint)
-	//if err != nil {
-	//	log.Fatal("Error establishing connection to DNS endpoint: " + err.Error())
-	//}
 	env := &Env{endpoint: dnsEndpoint, verbose: opts.Verbose}
 	log.Println("Firing up TCP4 listener")
 	for {
@@ -52,5 +55,27 @@ func main() {
 			log.Fatal(err)
 		}
 		go handleConnection(c, *env)
+	}
+}
+
+// the following function catches SIGUSR1 and dumps runtime statistics
+// there is no performance penalty for collecting these stats
+func dumpInfo(c chan os.Signal) {
+	for {
+		<-c
+		log.Println("Signal caught - dumping runtime stats")
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+		s, _ := json.Marshal(m)
+		log.Println("MemStats JSON follows")
+		log.Printf("%s\n", s)
+		var garC debug.GCStats
+		debug.ReadGCStats(&garC)
+		log.Printf("\nLastGC:\t%s", garC.LastGC)         // time of last collection
+		log.Printf("\nNumGC:\t%d", garC.NumGC)           // number of garbage collections
+		log.Printf("\nPauseTotal:\t%s", garC.PauseTotal) // total pause for all collections
+		log.Printf("\nPause:\t%s", garC.Pause)           // pause history, most recent first
+		log.Println("debug.Stack: " + string(debug.Stack()))
+		log.Println("runtime.NumGoroutine: " + string(runtime.NumGoroutine()))
 	}
 }
