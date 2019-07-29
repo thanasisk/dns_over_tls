@@ -1,12 +1,17 @@
 # dns_over_tls
 a DNS over TLS proxy written in Golang
 # build locally
-TBC
+## Prerequisites
+```go get github.com/jessevdk/go-flags```
+## Building
+```go build```
+## cleaning
+```go clean```
 # build using Docker
 TBC
 # run using Docker
 TBC
 # security considerations
 TBC
-# References
+# Future improvements
 
