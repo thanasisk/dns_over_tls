@@ -11,9 +11,10 @@ a DNS over TLS proxy written in Golang
 ## build using Docker
 ```docker build . -t n26_test```
 if this is for production usage, tag accordingly and DO NOT use *latest* (EVER!)
-as you can see, this is a 2 stage build, in order to keep the running image small
+
+As you can see, this is a 2 stage build, in order to keep the running image small
 # security considerations
-Normally, to bind to ports below 1024, you need root rights. However, recent 
+Normally, to bind to ports below 1024, you need root rights. However, recent
 Docker versions support Linux capabilities ```man 7 capabilities```.
 Setting the right capability to *BOTH* the executable and the process, do the following
 -```setcap 'cap_net_bind_service=+ep'```
