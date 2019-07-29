@@ -30,10 +30,13 @@ func (e *Env) SetConnection(c *tls.Conn) {
 }
 
 // connCreator let connection know how to create new connection.
-func connCreator(endpoint string) (tls.Conn, error) {
-	return tls.Dial("tcp", endpoint, nil)
+func connCreator() (tls.Conn, error) {
+	conn, err := tls.Dial("tcp", "1.1.1.1:853", nil)
+	if err != nil {
+		return tls.Conn{}, err
+	}
+	return *conn, nil
 }
-
 func main() {
 	_, err := flags.ParseArgs(&opts, os.Args)
 	if err != nil {
@@ -49,12 +52,12 @@ func main() {
 	defer l.Close()
 	// time to setup our TCP TLS connection
 	dnsEndpoint := opts.Dns + ":" + opts.Sport
-
+	log.Println(dnsEndpoint)
 	// Create new connection pool. It will initialize 3 connection in pool when pool created.
 	// If connection not enough in pool, pool will call creator to create new connection.
 	// But when total connection number pool created reach 10 connection, pool will not creat
 	// any new connection until someone call Remove().
-	pool, err := tlsPool.NewPool(3, 10, connCreator(dnsEndpoint))
+	pool, err := tlsPool.NewPool(3, 10, connCreator)
 
 	// Get connection from pool. If pool has no connection and total connection reach max number
 	// of connections, this method will block until someone put back connection to pool.
@@ -66,9 +69,7 @@ func main() {
 	for {
 		c, err := l.Accept()
 		if err != nil {
-			// TODO: revisit this!
-			log.Println("Accept()")
-			log.Fatal(err)
+			log.Fatal("Accept: " + err.Error())
 		}
 		go handleConnection(c, *env)
 	}
