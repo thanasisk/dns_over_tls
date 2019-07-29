@@ -16,6 +16,9 @@ For convenience I used host networking:
 ```docker run -it --network host n26_test /go/proxy -a=192.168.178.118```
 By default the proxy will attempt to bind 0.0.0.0:53 - on Fedora this is taken
 by *dnsmasq* so I specified eth0's address explicitly
+# Debugging
+In case you want to debug, send a SIGUSR1 to the running process. It will drop
+to stdout certain runtime/debug statistics
 # security considerations
 TBC
 # Future improvements
