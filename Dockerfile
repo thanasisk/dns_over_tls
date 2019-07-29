@@ -9,4 +9,7 @@ FROM debian:buster
 WORKDIR /go
 COPY --from=builder /go/proxy /go/
 EXPOSE 53
+RUN setcap 'cap_net_bind_service=+ep' proxy
+RUN groupadd appuser && useradd -r -u 1001 -g appuser appuser
+USER appuser
 CMD /go/proxy
