@@ -9,6 +9,33 @@ import "context"
 import "time"
 import "fmt"
 
+//
+type CpConn struct {
+	Conn tls.Conn
+	pool *GTLSPool
+}
+
+// Destroy will close connection and release connection from connection pool.
+func (conn *CpConn) Destroy() error {
+	if conn.pool == nil {
+		return errors.New("Connection not belong any connection pool.")
+	}
+	err := conn.pool.Remove(conn.Conn)
+	if err != nil {
+		return err
+	}
+	conn.pool = nil
+	return nil
+}
+
+// Close will push connection back to connection pool. It will not close the real connection.
+func (conn *CpConn) Close() error {
+	if conn.pool == nil {
+		return errors.New("Connection not belong any connection pool.")
+	}
+	return conn.pool.Put(conn.Conn)
+}
+
 type ConnPool interface {
 	Get() (tls.Conn, error)
 	Close() error
@@ -134,12 +161,15 @@ func (p *GTLSPool) Put(conn tls.Conn) error {
 	if p.isClosed() == true {
 		return errPoolIsClose
 	}
-	if conn == nil {
-		p.lock.Lock()
-		p.totalConnNum = p.totalConnNum - 1
-		p.lock.Unlock()
-		return errors.New("Cannot put nil to connection pool")
-	}
+	/*
+		foo := tls.Conn{}
+		if conn == foo {
+			p.lock.Lock()
+			p.totalConnNum = p.totalConnNum - 1
+			p.lock.Unlock()
+			return errors.New("Cannot put nil to connection pool")
+		}
+	*/
 	select {
 	case p.conns <- conn:
 		return nil
@@ -183,32 +213,5 @@ func (p *GTLSPool) createConn() (tls.Conn, error) {
 func (p *GTLSPool) packConn(conn tls.Conn) tls.Conn {
 	ret := &CpConn{pool: p}
 	ret.Conn = conn
-	return ret
-}
-
-//
-type CpConn struct {
-	Conn tls.Conn
-	pool *GTLSPool
-}
-
-// Destroy will close connection and release connection from connection pool.
-func (conn *CpConn) Destroy() error {
-	if conn.pool == nil {
-		return errors.New("Connection not belong any connection pool.")
-	}
-	err := conn.pool.Remove(conn.Conn)
-	if err != nil {
-		return err
-	}
-	conn.pool = nil
-	return nil
-}
-
-// Close will push connection back to connection pool. It will not close the real connection.
-func (conn *CpConn) Close() error {
-	if conn.pool == nil {
-		return errors.New("Connection not belong any connection pool.")
-	}
-	return conn.pool.Put(conn.Conn)
+	return ret.Conn
 }

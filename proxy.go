@@ -4,7 +4,7 @@ import "os"
 import "log"
 import "net"
 import "github.com/jessevdk/go-flags"
-import "connections"
+import "pool"
 import "crypto/tls"
 
 func init() {
@@ -21,11 +21,17 @@ var opts struct {
 }
 
 type Env struct {
-	oConn *tlsDNSConn.OutgoingConnection
+	//oConn *tlsDNSConn.OutgoingConnection
+	oConn tls.Conn
 }
 
 func (e *Env) SetConnection(c *tls.Conn) {
-	e.oConn.Connection = c
+	e.oConn = *c
+}
+
+// connCreator let connection know how to create new connection.
+func connCreator(endpoint string) (tls.Conn, error) {
+	return tls.Dial("tcp", endpoint, nil)
 }
 
 func main() {
@@ -43,7 +49,16 @@ func main() {
 	defer l.Close()
 	// time to setup our TCP TLS connection
 	dnsEndpoint := opts.Dns + ":" + opts.Sport
-	oconn, err := tlsDNSConn.NewConnection(dnsEndpoint)
+
+	// Create new connection pool. It will initialize 3 connection in pool when pool created.
+	// If connection not enough in pool, pool will call creator to create new connection.
+	// But when total connection number pool created reach 10 connection, pool will not creat
+	// any new connection until someone call Remove().
+	pool, err := tlsPool.NewPool(3, 10, connCreator(dnsEndpoint))
+
+	// Get connection from pool. If pool has no connection and total connection reach max number
+	// of connections, this method will block until someone put back connection to pool.
+	oconn, err := pool.Get()
 	if err != nil {
 		log.Fatal("Error establishing connection to DNS endpoint: " + err.Error())
 	}
