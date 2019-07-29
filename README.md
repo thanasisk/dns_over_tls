@@ -18,7 +18,7 @@ Normally, to bind to ports below 1024, you need root rights. However, recent
 Docker versions support Linux capabilities ```man 7 capabilities```.
 Setting the right capability to *BOTH* the executable and the process, do the following
 
--```setcap 'cap_net_bind_service=+ep'```
+- ```setcap 'cap_net_bind_service=+ep'```
 - ```docker run -it --cap-add NET_BIND_SERVICE --network host n26_test /go/proxy -a=192.168.178.118```
 For convenience I used host networking:
 By default the proxy will attempt to bind 0.0.0.0:53 - on Fedora this is taken
