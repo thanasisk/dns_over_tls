@@ -33,15 +33,30 @@ each of which will trigger a TLS handshake, which can be considered expensive. T
 a nice reliability and security pattern is rate limiting and using a queue. Understandably, given
 the short timeframe from this exercise, this is NOT implemented.
 # Future improvements
+## TLS connections
 as of now, there is a 1:1 mapping of incoming to proxied connections.
 Given that TLS handshake can be considered expensive, this is clearly *inefficient*.
 Therefore, an optimization that could be made is to use TLS sessions to reuse
 TLS connections as much as possible, reducing the load and round-about time per 
 incoming connection. Since, it was not clear to which extend I could use external
 components, some leftovers can be found under ```vendor```
+## Multithreading
+Furthermore, the server implementation is naive. Given that this is an I/O bounded problem,
+standard Golang CSP measures such as channels, can be used for a more elegant solution. Dropping down
+to low level synchronization level might gain a performance boost, but again, given that this is an
+I/O bounded problem, this optimization might not be essentials.
+
+
 # Known bugs
 - verbosity is ignored as of now
 - ```bufio.read``` error message is kind of spammy
 # Debugging
 In case you want to debug, send a SIGUSR1 to the running process. It will drop
 to stdout certain runtime/debug statistics
+# Further questions
+- Imagine this proxy being deployed in an infrastructure. What would be the security concerns you would raise?
+Please see section security concerns above.
+- How would you integrate that solution in a distributed, microservices-oriented and containerized architecture?
+TBC
+-  What other improvements do you think would be interesting to add to the project?
+Please see section Future Improvements above.
