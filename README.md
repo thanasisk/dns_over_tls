@@ -8,9 +8,14 @@ a DNS over TLS proxy written in Golang
 ## cleaning
 ```go clean```
 # build using Docker
-TBC
+```docker build . -t n26_test```
+
+as you can see, this is a 2 stage build, in order to keep the running image small
 # run using Docker
-TBC
+For convenience I used host networking:
+```docker run -it --network host n26_test /go/proxy -a=192.168.178.118```
+By default the proxy will attempt to bind 0.0.0.0:53 - on Fedora this is taken
+by *dnsmasq* so I specified eth0's address explicitly
 # security considerations
 TBC
 # Future improvements
@@ -20,3 +25,6 @@ Therefore, an optimization that could be made is to use TLS sessions to reuse
 TLS connections as much as possible, reducing the load and round-about time per 
 incoming connection. Since, it was not clear to which extend I could use external
 components, some leftovers can be found under ```vendor```
+# Known bugs
+verbosity is ignored as of now
+```bufio.read``` error message is kind of spammy

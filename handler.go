@@ -19,7 +19,7 @@ func handleConnection(c net.Conn, env Env) {
 		log.Println(string(netData))
 		// now that we have netData, let's send them to endpoint
 		log.Println("Connecting to: %s", env.endpoint)
-		oc, err := tls.Dial("tcp4", env.endpoint, nil)
+		oc, err := tls.Dial("tcp4", env.endpoint, &tls.Config{InsecureSkipVerify: true})
 		if err != nil {
 			log.Println("Cannot Dial %s: %s", env.endpoint, err.Error())
 			break

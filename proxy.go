@@ -42,7 +42,8 @@ func main() {
 	//if err != nil {
 	//	log.Fatal("Error establishing connection to DNS endpoint: " + err.Error())
 	//}
-	env := &Env{endpoint: dnsEndpoint, verbose: opts.Verbosity}
+	env := &Env{endpoint: dnsEndpoint, verbose: opts.Verbose}
+	log.Println("Firing up TCP4 listener")
 	for {
 		c, err := l.Accept()
 		if err != nil {
