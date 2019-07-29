@@ -7,10 +7,10 @@ import "github.com/jessevdk/go-flags"
 import "pool"
 import "crypto/tls"
 
-func init() {
-	// required for TLS 1.3 support
-	os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
-}
+///func init() {
+// required for TLS 1.3 support
+//	os.Setenv("GODEBUG", os.Getenv("GODEBUG")+",tls13=1")
+//}
 
 var opts struct {
 	Verbose bool   `short:"v" long:"verbose" description:"verbose mode"`
@@ -23,6 +23,7 @@ var opts struct {
 type Env struct {
 	//oConn *tlsDNSConn.OutgoingConnection
 	oConn tls.Conn
+	pool  *tlsPool.GTLSPool
 }
 
 func (e *Env) SetConnection(c *tls.Conn) {
@@ -31,11 +32,24 @@ func (e *Env) SetConnection(c *tls.Conn) {
 
 // connCreator let connection know how to create new connection.
 func connCreator() (tls.Conn, error) {
-	conn, err := tls.Dial("tcp", "1.1.1.1:853", nil)
+	tcpAddr, err := net.ResolveTCPAddr("tcp", "1.1.1.1:853")
 	if err != nil {
+		log.Println("Unable to resolve endpoint:")
 		return tls.Conn{}, err
 	}
-	return *conn, nil
+	tcpConn, err := net.DialTCP("tcp", nil, tcpAddr)
+	if err != nil {
+		log.Println("Unable to dial TCP")
+		return tls.Conn{}, err
+	}
+	// upgrade standard TCP connection to insecure TLS one
+	err = tcpConn.SetKeepAlive(true)
+	if err != nil {
+		log.Println("Unable to set KeepAlive on TCP transport")
+		return tls.Conn{}, err
+	}
+	c := tls.Client(tcpConn, &tls.Config{InsecureSkipVerify: true})
+	return *c, nil
 }
 func main() {
 	_, err := flags.ParseArgs(&opts, os.Args)
@@ -65,7 +79,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error establishing connection to DNS endpoint: " + err.Error())
 	}
-	env := &Env{oConn: oconn}
+	env := &Env{oConn: oconn, pool: pool}
 	for {
 		c, err := l.Accept()
 		if err != nil {
