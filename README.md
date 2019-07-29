@@ -26,5 +26,5 @@ TLS connections as much as possible, reducing the load and round-about time per
 incoming connection. Since, it was not clear to which extend I could use external
 components, some leftovers can be found under ```vendor```
 # Known bugs
-verbosity is ignored as of now
-```bufio.read``` error message is kind of spammy
+- verbosity is ignored as of now
+- ```bufio.read``` error message is kind of spammy
