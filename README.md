@@ -55,8 +55,14 @@ In case you want to debug, send a SIGUSR1 to the running process. It will drop
 to stdout certain runtime/debug statistics
 # Further questions
 - Imagine this proxy being deployed in an infrastructure. What would be the security concerns you would raise?
+
 Please see section security concerns above.
 - How would you integrate that solution in a distributed, microservices-oriented and containerized architecture?
-TBC
+
+In order to consider putting this into a containerized architecture, I would first address the security and reliability concerns stated throughout
+this file. Currently, application configuration is done via command line switches - some of them can be changed to become environmental variables.
+Thankfully, newer Kubernetes editions, support Linux capabilities (so no need for SUID). Another topic under Kubernetes would be how to expose the service
+to the outside world - using an ingress might introduce latency and in addition it might make logging more difficult.
 -  What other improvements do you think would be interesting to add to the project?
+
 Please see section Future Improvements above.
