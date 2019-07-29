@@ -20,6 +20,7 @@ var opts struct {
 
 type Env struct {
 	endpoint string
+	verbose  bool
 }
 
 func main() {
@@ -41,7 +42,7 @@ func main() {
 	//if err != nil {
 	//	log.Fatal("Error establishing connection to DNS endpoint: " + err.Error())
 	//}
-	env := &Env{endpoint: dnsEndpoint}
+	env := &Env{endpoint: dnsEndpoint, verbose: opts.Verbosity}
 	for {
 		c, err := l.Accept()
 		if err != nil {
