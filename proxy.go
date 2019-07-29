@@ -4,8 +4,6 @@ import "os"
 import "log"
 import "net"
 import "github.com/jessevdk/go-flags"
-import "connections"
-import "crypto/tls"
 
 func init() {
 	// required for TLS 1.3 support
@@ -21,11 +19,7 @@ var opts struct {
 }
 
 type Env struct {
-	oConn *tlsDNSConn.OutgoingConnection
-}
-
-func (e *Env) SetConnection(c *tls.Conn) {
-	e.oConn.Connection = c
+	endpoint string
 }
 
 func main() {
@@ -43,11 +37,11 @@ func main() {
 	defer l.Close()
 	// time to setup our TCP TLS connection
 	dnsEndpoint := opts.Dns + ":" + opts.Sport
-	oconn, err := tlsDNSConn.NewConnection(dnsEndpoint)
-	if err != nil {
-		log.Fatal("Error establishing connection to DNS endpoint: " + err.Error())
-	}
-	env := &Env{oConn: oconn}
+	//oconn, err := tlsDNSConn.NewConnection(dnsEndpoint)
+	//if err != nil {
+	//	log.Fatal("Error establishing connection to DNS endpoint: " + err.Error())
+	//}
+	env := &Env{endpoint: dnsEndpoint}
 	for {
 		c, err := l.Accept()
 		if err != nil {
